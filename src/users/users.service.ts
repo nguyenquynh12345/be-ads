@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -35,6 +35,13 @@ export class UsersService {
   }
 
   async remove(id: number): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    if (user.role === 'Admin') {
+      throw new ForbiddenException('Không thể xóa tài khoản Quản trị viên (Admin)');
+    }
     await this.usersRepository.delete(id);
   }
 }

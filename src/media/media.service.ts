@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { Media } from './entities/media.entity';
 import * as fs from 'fs';
 import { join } from 'path';
+
+import sharp from 'sharp';
 
 @Injectable()
 export class MediaService {
@@ -12,8 +14,26 @@ export class MediaService {
     private mediaRepository: Repository<Media>,
   ) {}
 
-  async findAll(): Promise<Media[]> {
-    return this.mediaRepository.find({ order: { createdAt: 'DESC' } });
+  async findAll(filters?: { startDate?: string; endDate?: string; uploaderId?: number }): Promise<Media[]> {
+    const where: any = {};
+
+    if (filters?.uploaderId) {
+      where.uploaderId = filters.uploaderId;
+    }
+
+    if (filters?.startDate && filters?.endDate) {
+      where.createdAt = Between(new Date(filters.startDate), new Date(filters.endDate));
+    } else if (filters?.startDate) {
+      where.createdAt = MoreThanOrEqual(new Date(filters.startDate));
+    } else if (filters?.endDate) {
+      where.createdAt = LessThanOrEqual(new Date(filters.endDate));
+    }
+
+    return this.mediaRepository.find({
+      where,
+      order: { createdAt: 'DESC' },
+      relations: ['uploader'],
+    });
   }
 
   async findOne(id: number): Promise<Media | null> {
@@ -25,18 +45,46 @@ export class MediaService {
     return this.mediaRepository.save(media);
   }
 
+  async generateThumbnail(filePath: string): Promise<string | null> {
+    try {
+      const ext = filePath.split('.').pop();
+      const thumbPath = filePath.replace(`.${ext}`, `-thumb.${ext}`);
+      
+      await sharp(filePath)
+        .resize(400) // Max width 400px
+        .webp({ quality: 80 }) // Convert to webp for better performance if possible, or just keep same extension
+        .toFile(thumbPath);
+      
+      return thumbPath;
+    } catch (error) {
+      console.error('Failed to generate thumbnail', error);
+      return null;
+    }
+  }
+
   async remove(id: number): Promise<void> {
     const media = await this.findOne(id);
     if (media) {
-      // Extract relative path from URL: http://localhost:3002/uploads/2026-03-27/filename
-      const urlParts = media.url.split('/uploads/');
-      if (urlParts.length > 1) {
-        const relativePath = urlParts[1];
-        const filePath = join(process.cwd(), 'uploads', relativePath);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+      // Helper to delete physical file from URL
+      const deleteFileFromUrl = (url: string) => {
+        const urlParts = url.split('/uploads/');
+        if (urlParts.length > 1) {
+          const relativePath = urlParts[1];
+          const filePath = join(process.cwd(), 'uploads', relativePath);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
         }
+      };
+
+      // Delete original
+      deleteFileFromUrl(media.url);
+      
+      // Delete thumbnail if exists
+      if (media.thumbnailUrl) {
+        deleteFileFromUrl(media.thumbnailUrl);
       }
+
       await this.mediaRepository.delete(id);
     }
   }

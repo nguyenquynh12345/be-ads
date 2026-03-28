@@ -10,12 +10,22 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/entities/user.entity';
 import { MediaModule } from './media/media.module';
 import { Media } from './media/entities/media.entity';
+import { SchedulerModule } from './scheduler/scheduler.module';
+import { Scheduler } from './scheduler/entities/scheduler.entity';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SystemModule } from './system/system.module';
+import { SystemSetting } from './system/entities/system-setting.entity';
+import { PostsModule } from './posts/posts.module';
+import { Post } from './posts/entities/post.entity';
+import { CategoriesModule } from './categories/categories.module';
+import { Category } from './categories/entities/category.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,7 +36,7 @@ import { Media } from './media/entities/media.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [User, Media],
+        entities: [User, Media, Scheduler, SystemSetting, Post, Category],
         synchronize: true,
       }),
     }),
@@ -37,6 +47,10 @@ import { Media } from './media/entities/media.entity';
     UsersModule,
     AuthModule,
     MediaModule,
+    SchedulerModule,
+    SystemModule,
+    PostsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

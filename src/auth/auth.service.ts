@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -27,7 +27,12 @@ export class AuthService {
   async login(username: string, pass: string) {
     const user = await this.usersService.findOne(username);
     if (user && (await bcrypt.compare(pass, user.password))) {
-      const payload = { username: user.username, sub: user.id };
+      // Kiểm tra trạng thái tài khoản
+      if (user.status !== 'active') {
+        throw new ForbiddenException('Tài khoản đã bị khóa hoặc chưa được kích hoạt');
+      }
+
+      const payload = { username: user.username, sub: user.id, role: user.role };
       return {
         access_token: this.jwtService.sign(payload),
       };
@@ -36,8 +41,16 @@ export class AuthService {
   }
 
   async updateProfile(id: number, data: any) {
-    const { id: _, ...updateData } = data;
-    await this.usersService.update(id, updateData);
+    const { fullName, email, avatarUrl, avatarThumbnailUrl, phone, bio, language } = data;
+    await this.usersService.update(id, { 
+      fullName, 
+      email, 
+      avatarUrl, 
+      avatarThumbnailUrl,
+      phone, 
+      bio, 
+      language 
+    });
     return { message: 'Profile updated successfully' };
   }
 
