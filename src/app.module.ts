@@ -37,7 +37,7 @@ import { Category } from './categories/entities/category.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         entities: [User, Media, Scheduler, SystemSetting, Post, Category],
-        synchronize: true,
+        synchronize: configService.get<string>('NODE_ENV') !== 'production',
       }),
     }),
     ServeStaticModule.forRoot({

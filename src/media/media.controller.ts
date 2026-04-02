@@ -67,14 +67,14 @@ export class MediaController {
       const thumbPath = await this.mediaService.generateThumbnail(file.path);
       if (thumbPath) {
         const thumbFilename = thumbPath.split(/[\\/]/).pop();
-        thumbnailUrl = `http://localhost:3002/uploads/${date}/${thumbFilename}`;
+        thumbnailUrl = `/api/uploads/${date}/${thumbFilename}`;
       }
     }
 
     const media = await this.mediaService.create({
       name: name?.trim() || file.originalname,
       filename: file.filename,
-      url: `http://localhost:3002/uploads/${date}/${file.filename}`,
+      url: `/api/uploads/${date}/${file.filename}`,
       thumbnailUrl,
       mimetype: file.mimetype,
       size: file.size,
@@ -132,14 +132,14 @@ export class MediaController {
               const thumbPath = await this.mediaService.generateThumbnail(filePath);
               if (thumbPath) {
                 const thumbFilename = thumbPath.split(/[\\/]/).pop();
-                thumbnailUrl = `http://localhost:3002/uploads/${date}/${thumbFilename}`;
+                thumbnailUrl = `/api/uploads/${date}/${thumbFilename}`;
               }
             }
 
             const media = await this.mediaService.create({
               name: name?.trim() || url.split('/').pop() || 'downloaded-file',
               filename: filename,
-              url: `http://localhost:3002/uploads/${date}/${filename}`,
+              url: `/api/uploads/${date}/${filename}`,
               thumbnailUrl,
               mimetype: contentType || 'application/octet-stream',
               size: stats.size,
@@ -152,7 +152,7 @@ export class MediaController {
         });
         writer.on('error', reject);
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(`Failed to download file: ${error.message}`);
     }
   }
