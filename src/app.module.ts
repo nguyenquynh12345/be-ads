@@ -19,6 +19,7 @@ import { PostsModule } from './posts/posts.module';
 import { Post } from './posts/entities/post.entity';
 import { CategoriesModule } from './categories/categories.module';
 import { Category } from './categories/entities/category.entity';
+import { MenusModule } from './menus/menus.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { Category } from './categories/entities/category.entity';
     SystemModule,
     PostsModule,
     CategoriesModule,
+    MenusModule,
   ],
   controllers: [AppController],
   providers: [AppService],

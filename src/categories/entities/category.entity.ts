@@ -13,7 +13,10 @@ export class Category {
   slug: string;
 
   @Column({ nullable: true })
-  description: string;
+  icon: string;
+
+  @Column({ nullable: true })
+  color: string;
 
   @OneToMany(() => Post, (post) => post.category)
   posts: Post[];

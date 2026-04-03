@@ -11,6 +11,26 @@ export class PostsController {
     return this.postsService.findAll();
   }
 
+  @Get('featured')
+  getFeatured() {
+    return this.postsService.getFeatured();
+  }
+
+  @Get('hot')
+  getHot() {
+    return this.postsService.getHot();
+  }
+
+  @Get('new-updates')
+  getNewUpdates() {
+    return this.postsService.getNewUpdates();
+  }
+
+  @Get('rankings')
+  getRankings() {
+    return this.postsService.getRankings();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(+id);

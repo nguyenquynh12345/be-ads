@@ -59,7 +59,6 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    const { password, ...result } = user;
-    return result;
+    return user;
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards, Post } from '@nestjs/common';
 import { SystemService } from './system.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -13,6 +13,11 @@ export class SystemController {
   @Get('settings')
   async findAll() {
     return this.systemService.findAll();
+  }
+
+  @Post('seed')
+  async seed() {
+    return this.systemService.seed();
   }
 
   @Get('settings/:key')

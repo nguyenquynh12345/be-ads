@@ -10,16 +10,20 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(): Promise<Omit<User, 'password'>[]> {
+    const users = await this.usersRepository.find();
+    return users.map(({ password, ...user }) => user as Omit<User, 'password'>);
   }
 
   async findOne(username: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { username } });
   }
 
-  async findById(id: number): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+  async findById(id: number): Promise<Omit<User, 'password'> | null> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) return null;
+    const { password, ...result } = user;
+    return result as Omit<User, 'password'>;
   }
 
   async create(user: Partial<User>): Promise<User> {
@@ -30,8 +34,9 @@ export class UsersService {
     return this.usersRepository.save(newUser);
   }
 
-  async update(id: number, data: Partial<User>): Promise<void> {
+  async update(id: number, data: Partial<User>): Promise<Omit<User, 'password'>> {
     await this.usersRepository.update(id, data);
+    return this.findById(id) as Promise<Omit<User, 'password'>>;
   }
 
   async remove(id: number): Promise<void> {

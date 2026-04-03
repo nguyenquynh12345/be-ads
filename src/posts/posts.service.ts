@@ -10,11 +10,20 @@ export class PostsService {
     private postsRepository: Repository<Post>,
   ) {}
 
+  private stripAuthorPassword(post: any) {
+    if (post?.author) {
+      const { password, ...author } = post.author;
+      return { ...post, author };
+    }
+    return post;
+  }
+
   async findAll() {
-    return this.postsRepository.find({
+    const posts = await this.postsRepository.find({
       order: { createdAt: 'DESC' },
       relations: ['author', 'category'],
     });
+    return posts.map(p => this.stripAuthorPassword(p));
   }
 
   async findOne(id: number) {
@@ -23,7 +32,7 @@ export class PostsService {
       relations: ['author', 'category'],
     });
     if (!post) throw new NotFoundException('Post not found');
-    return post;
+    return this.stripAuthorPassword(post);
   }
 
   async create(data: Partial<Post>) {
@@ -53,5 +62,38 @@ export class PostsService {
   async remove(id: number) {
     const post = await this.findOne(id);
     return this.postsRepository.remove(post);
+  }
+
+  async getFeatured() {
+    return this.postsRepository.find({
+      where: { isFeatured: true },
+      relations: ['author', 'category'],
+      take: 5,
+    });
+  }
+
+  async getHot() {
+    return this.postsRepository.find({
+      order: { views: 'DESC' },
+      relations: ['author', 'category'],
+      take: 10,
+    });
+  }
+
+  async getNewUpdates() {
+    return this.postsRepository.find({
+      order: { updatedAt: 'DESC' },
+      relations: ['author', 'category'],
+      take: 10,
+    });
+  }
+
+  async getRankings(type: 'daily' | 'weekly' | 'monthly' | 'all' = 'all') {
+    // For now, simplify and use total views
+    return this.postsRepository.find({
+      order: { views: 'DESC' },
+      relations: ['author', 'category'],
+      take: 10,
+    });
   }
 }

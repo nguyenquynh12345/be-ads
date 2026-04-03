@@ -11,7 +11,10 @@ export class CategoriesService {
   ) {}
 
   async findAll() {
-    return this.categoryRepository.find();
+    return this.categoryRepository
+      .createQueryBuilder('category')
+      .loadRelationCountAndMap('category.postCount', 'category.posts')
+      .getMany();
   }
 
   async findOne(id: number) {

@@ -34,6 +34,24 @@ export class Post {
   @Column({ nullable: true })
   categoryId: number;
 
+  @Column({ default: 0 })
+  views: number;
+
+  @Column({ default: 0 })
+  chapters: number;
+
+  @Column({ default: false })
+  isFeatured: boolean;
+
+  @Column({ nullable: true })
+  badge: string;
+
+  @Column({ nullable: true })
+  color: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

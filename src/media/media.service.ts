@@ -29,10 +29,17 @@ export class MediaService {
       where.createdAt = LessThanOrEqual(new Date(filters.endDate));
     }
 
-    return this.mediaRepository.find({
+    const mediaList = await this.mediaRepository.find({
       where,
       order: { createdAt: 'DESC' },
       relations: ['uploader'],
+    });
+    return mediaList.map(media => {
+      if (media.uploader) {
+        const { password, ...uploader } = media.uploader as any;
+        return { ...media, uploader };
+      }
+      return media;
     });
   }
 
@@ -49,12 +56,11 @@ export class MediaService {
     try {
       const ext = filePath.split('.').pop();
       const thumbPath = filePath.replace(`.${ext}`, `-thumb.${ext}`);
-      
+
       await sharp(filePath)
-        .resize(400) // Max width 400px
-        .webp({ quality: 80 }) // Convert to webp for better performance if possible, or just keep same extension
+        .resize(400)
         .toFile(thumbPath);
-      
+
       return thumbPath;
     } catch (error) {
       console.error('Failed to generate thumbnail', error);
